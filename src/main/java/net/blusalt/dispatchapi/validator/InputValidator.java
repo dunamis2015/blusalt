@@ -3,7 +3,6 @@ package net.blusalt.dispatchapi.validator;
 import net.blusalt.dispatchapi.exception.BadRequestException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-
 import java.util.List;
 
 /**

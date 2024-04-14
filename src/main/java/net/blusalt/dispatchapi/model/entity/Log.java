@@ -8,10 +8,12 @@ import java.util.Date;
  * @author Olusegun Adeoye
  */
 @Entity
+@Table(indexes = {
+        @Index(name = "ref_index", columnList = "reference")
+})
 public class Log {
   private Integer id;
   private String reference;
-  private String service;
   private String request;
   private String response;
   private String actionType;
@@ -37,16 +39,6 @@ public class Log {
 
   public void setReference(String reference) {
     this.reference = reference;
-  }
-
-  @Basic
-  @Column(name = "service", nullable = true)
-  public String getService() {
-    return service;
-  }
-
-  public void setService(String service) {
-    this.service = service;
   }
 
   @Basic

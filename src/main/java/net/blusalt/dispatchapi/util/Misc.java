@@ -3,8 +3,10 @@ package net.blusalt.dispatchapi.util;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Olusegun Adeoye
@@ -42,5 +44,22 @@ public class Misc {
     System.out.println(">>>>>>ExpiredAt: "+timestamp);
     return timestamp;
   }
+
+  public static List convertEnumToList(Enum<?>[] enumValues) {
+    List list = new ArrayList<>();
+    for (Enum<?> value : enumValues) {
+      list.add(value);
+    }
+    return list;
+  }
+
+//  public static boolean isValueInEnum(String value, Class<? extends Enum<?>> enumClass) {
+//    try {
+//      Enum.valueOf(enumClass, value);
+//      return true;
+//    } catch (IllegalArgumentException e) {
+//      return false;
+//    }
+//  }
 
 }

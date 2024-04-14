@@ -1,7 +1,6 @@
 package net.blusalt.dispatchapi.validator;
 
 import net.blusalt.dispatchapi.validator.annotation.ValidValue;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.regex.Matcher;
@@ -12,7 +11,7 @@ import java.util.regex.Pattern;
  */
 public class ValueValidator implements ConstraintValidator<ValidValue, String> {
 
-  private static final String UNWANTED_CHARACTER = "[^,;:*\\[\\]|()\'\"]+";
+  private static final String UNWANTED_CHARACTER = "[^,!@#`?<$}=%>^.{/&~;+:*\\[\\]|()\'\"]+";
 
   @Override
   public void initialize(ValidValue constraintAnnotation) {
