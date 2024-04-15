@@ -15,8 +15,7 @@ import net.blusalt.dispatchapi.model.request.CompleteDroneLoadingRequest;
 import net.blusalt.dispatchapi.model.request.FireDroneRequest;
 import net.blusalt.dispatchapi.model.request.InitiateDroneLoadingRequest;
 import net.blusalt.dispatchapi.model.request.RegisterDroneRequest;
-import net.blusalt.dispatchapi.model.response.DispatchResponse;
-import net.blusalt.dispatchapi.model.response.GetDroneModelsResponse;
+import net.blusalt.dispatchapi.model.response.*;
 import net.blusalt.dispatchapi.repository.DronesRepository;
 import net.blusalt.dispatchapi.repository.LogRepository;
 import net.blusalt.dispatchapi.repository.MedicationsRepository;
@@ -28,6 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.blusalt.dispatchapi.util.Misc.addSecondsToDate;
@@ -54,6 +54,7 @@ public class DispatchService {
     private final Double BATTERY_MIN_LIMIT = 25.0;
     private final String LOW_BATTERY_MSG = "Drone Battery too low for loading!";
     private final String OVERLOAD_MSG = "Sorry, the medication weight will overload the drone";
+    private final String DRONE_BUSY_MSG = "All drones are currently busy!";
 
     @Autowired
     public DispatchService(LogRepository logRepository, DronesRepository dronesRepository,
@@ -116,6 +117,43 @@ public class DispatchService {
         return DispatchResponse.buildResponse();
     }
 
+    public GetDroneLoadedItemsResponse getDroneLoadedItems(String droneSerialNumber, Log logs) {
+        Drones drone = fetchDrones(droneSerialNumber);
+        if (drone == null) {
+            log.info(">>>>>>DispatchService: ".concat(DRONE_NOT_FOUND) + droneSerialNumber);
+            updateLog(logs, DRONE_NOT_FOUND + droneSerialNumber);
+            throw new NotFoundException("Drone with given serial number does not exist!");
+        }
+        if (!drone.getState().equals(String.valueOf(DroneStates.LOADED))) {
+            log.info(">>>>>>DispatchService: ".concat(NOT_LOADED_STATE) + droneSerialNumber);
+            updateLog(logs, NOT_LOADED_STATE + droneSerialNumber);
+            throw new ProcessingException("Drone is currently not loaded!");
+        }
+        List<Medications> medications = medicationsRepository.findAllByMappedAndDroneSerialNumber(true,
+                droneSerialNumber);
+        return GetDroneLoadedItemsResponse.buildLoadedDroneResponse(medications);
+    }
+
+    public GetAvailableDronesResponse getAvailableDrones(Log logs) {
+        List<Drones> drones = dronesRepository.findAllByState(String.valueOf(DroneStates.IDLE));
+        if (drones == null) {
+            log.info(">>>>>>DispatchService: ".concat(DRONE_BUSY_MSG) );
+            updateLog(logs, DRONE_BUSY_MSG);
+            throw new NotFoundException(DRONE_BUSY_MSG);
+        }
+        return GetAvailableDronesResponse.buildDroneListResponse(drones);
+    }
+
+    public GetDroneBatteryLevelResponse getDroneBatteryLevel(String droneSerialNumber, Log logs) {
+        Drones drone = fetchDrones(droneSerialNumber);
+        if (drone == null) {
+            log.info(">>>>>>DispatchService: ".concat(DRONE_NOT_FOUND) + droneSerialNumber);
+            updateLog(logs, DRONE_NOT_FOUND + droneSerialNumber);
+            throw new NotFoundException("Drone with given serial number does not exist!");
+        }
+        return GetDroneBatteryLevelResponse.buildBatteryLevelResponse(drone);
+    }
+
     @Scheduled(cron = "${monitorDrone.cron}",
             zone = "${monitorDrone.cronTimezone}")
     @SchedulerLock(name = "dispatchScheduler")
@@ -153,6 +191,21 @@ public class DispatchService {
                 }
             }
         }
+
+        List<Drones> allDrones = dronesRepository.findAll();
+            List<BatteryCheckResponse> batteryCheckResponses = new ArrayList<>();
+        if (allDrones != null) {
+            for (Drones drones1 : allDrones) {
+                BatteryCheckResponse batteryCheckResponse = new BatteryCheckResponse();
+                batteryCheckResponse.setBatteryLevel(drones1.getBatteryCapacity());
+                batteryCheckResponse.setDroneSerialNumber(drones1.getSerialNumber());
+                batteryCheckResponses.add(batteryCheckResponse);
+            }
+        }
+        Log logs = new Log();
+        logs.setActionType("batteryCheckAuditLog");
+        logs.setResponse(gson.toJson(batteryCheckResponses));
+        logRepository.save(logs);
         } catch (Exception e) {
 //            throw new RuntimeException(e);
         }

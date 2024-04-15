@@ -14,4 +14,5 @@ public interface DronesRepository extends
         PagingAndSortingRepository<Drones, Long> {
     Drones findOneBySerialNumber(String serialNumber);
     List<Drones> findAllByState(String state);
+    List<Drones> findAll();
 }

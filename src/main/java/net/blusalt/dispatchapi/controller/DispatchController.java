@@ -8,8 +8,7 @@ import net.blusalt.dispatchapi.model.request.CompleteDroneLoadingRequest;
 import net.blusalt.dispatchapi.model.request.FireDroneRequest;
 import net.blusalt.dispatchapi.model.request.InitiateDroneLoadingRequest;
 import net.blusalt.dispatchapi.model.request.RegisterDroneRequest;
-import net.blusalt.dispatchapi.model.response.GetDroneModelsResponse;
-import net.blusalt.dispatchapi.model.response.DispatchResponse;
+import net.blusalt.dispatchapi.model.response.*;
 import net.blusalt.dispatchapi.service.DispatchService;
 import net.blusalt.dispatchapi.validator.InputValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -103,5 +99,40 @@ public class DispatchController {
         log.info("fireDroneResponse: " + gson.toJson(dispatchResponse));
         dispatchService.updateLog(logs, gson.toJson(dispatchResponse));
         return new ResponseEntity<>(dispatchResponse, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/v1/getDroneLoadedItems", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetDroneLoadedItemsResponse> GetDroneLoadedItems(
+            @Valid @RequestParam String droneSerialNumber
+    ) throws Exception {
+        Log logs = dispatchService.saveLog(droneSerialNumber, gson.toJson(droneSerialNumber),
+                "getDroneLoadedItemsRequest");
+        GetDroneLoadedItemsResponse getDroneLoadedItemsResponse = dispatchService
+                .getDroneLoadedItems(droneSerialNumber, logs);
+        log.info("GetDroneLoadedItemsResponse: " + gson.toJson(getDroneLoadedItemsResponse));
+        dispatchService.updateLog(logs, gson.toJson(getDroneLoadedItemsResponse));
+        return new ResponseEntity<>(getDroneLoadedItemsResponse, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/v1/getAvailableDrones", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetAvailableDronesResponse> GetAvailableDrones() throws Exception {
+        Log logs = dispatchService.saveLog("", "", "getAvailableDrones");
+        GetAvailableDronesResponse getAvailableDronesResponse = dispatchService.getAvailableDrones(logs);
+        log.info("GetDroneLoadedItemsResponse: " + gson.toJson(getAvailableDronesResponse));
+        dispatchService.updateLog(logs, gson.toJson(getAvailableDronesResponse));
+        return new ResponseEntity<>(getAvailableDronesResponse, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/v1/getDroneBatteryLevel", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetDroneBatteryLevelResponse> GetDroneBatteryLevel(
+            @Valid @RequestParam String droneSerialNumber
+    ) throws Exception {
+        Log logs = dispatchService.saveLog(droneSerialNumber, gson.toJson(droneSerialNumber),
+                "getDroneBatteryLevel");
+        GetDroneBatteryLevelResponse getDroneBatteryLevelResponse = dispatchService
+                .getDroneBatteryLevel(droneSerialNumber, logs);
+        log.info("GetDroneBatteryLevelResponse: " + gson.toJson(getDroneBatteryLevelResponse));
+        dispatchService.updateLog(logs, gson.toJson(getDroneBatteryLevelResponse));
+        return new ResponseEntity<>(getDroneBatteryLevelResponse, HttpStatus.OK);
     }
 }
