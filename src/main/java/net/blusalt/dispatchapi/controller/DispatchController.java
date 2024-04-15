@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.blusalt.dispatchapi.model.entity.Log;
+import net.blusalt.dispatchapi.model.request.CompleteDroneLoadingRequest;
+import net.blusalt.dispatchapi.model.request.FireDroneRequest;
 import net.blusalt.dispatchapi.model.request.InitiateDroneLoadingRequest;
 import net.blusalt.dispatchapi.model.request.RegisterDroneRequest;
 import net.blusalt.dispatchapi.model.response.GetDroneModelsResponse;
@@ -29,9 +31,6 @@ import javax.validation.Valid;
 @RestController
 public class DispatchController {
 
-    private static final String AUTHMESSAGE = "Not Authorized";
-    private static final String REQUESTSTRING = ">>>>>>>>" + "Dispatch_Request ";
-    private static final String RESPONSESTRING = ">>>>>>>>" + "Dispatch_Response ";
     private final Gson gson;
     private final DispatchService dispatchService;
 
@@ -42,13 +41,7 @@ public class DispatchController {
     }
 
     @GetMapping(path = "/v1/getDroneModels", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetDroneModelsResponse> GetDroneModels(
-//            @RequestHeader("Authorization") String authCredentials,
-           ) throws Exception {
-//        if (StringUtils.isBlank(authCredentials)) {
-//            return new ResponseEntity<>(GetDroneModelsResponse.builder().build(),
-//                    HttpStatus.UNAUTHORIZED);
-//        }
+    public ResponseEntity<GetDroneModelsResponse> GetDroneModels() throws Exception {
         Log logs = dispatchService.saveLog("", "", "getDroneModelsRequest");
         GetDroneModelsResponse getDroneModelsResponse = dispatchService.getDroneModels();
         log.info("GetDroneModelsResponse: " + gson.toJson(getDroneModelsResponse));
@@ -58,13 +51,8 @@ public class DispatchController {
 
     @PostMapping(path = "/v1/registerDrone", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DispatchResponse> RegisterDrone(
-//            @RequestHeader("Authorization") String authCredentials,
             @Valid @RequestBody RegisterDroneRequest registerDroneRequest,
             BindingResult bindingResult) throws Exception {
-//        if (StringUtils.isBlank(authCredentials)) {
-//            return new ResponseEntity<>(DispatchResponse.builder().build(),
-//                    HttpStatus.UNAUTHORIZED);
-//        }
         Log logs = dispatchService.saveLog(registerDroneRequest.getSerialNumber(), gson.toJson(registerDroneRequest),
                 "registerDroneRequest");
         log.info("registerDroneRequest: " + gson.toJson(registerDroneRequest));
@@ -77,20 +65,43 @@ public class DispatchController {
 
     @PostMapping(path = "/v1/initiateDroneLoading", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DispatchResponse> InitiateDroneLoading(
-//            @RequestHeader("Authorization") String authCredentials,
             @Valid @RequestBody InitiateDroneLoadingRequest initiateDroneLoadingRequest,
             BindingResult bindingResult) throws Exception {
-//        if (StringUtils.isBlank(authCredentials)) {
-//            return new ResponseEntity<>(DispatchResponse.builder().build(),
-//                    HttpStatus.UNAUTHORIZED);
-//        }
-//        Log logs = dispatchService.saveLog(registerDroneRequest.getSerialNumber(), gson.toJson(registerDroneRequest),
-//                "registerDroneRequest");
-//        log.info("registerDroneRequest: " + gson.toJson(registerDroneRequest));
+        Log logs = dispatchService.saveLog(initiateDroneLoadingRequest.getLoadingReference(),
+                gson.toJson(initiateDroneLoadingRequest), "initiateDroneLoadingRequest");
+        log.info("initiateDroneLoadingRequest: " + gson.toJson(initiateDroneLoadingRequest));
         InputValidator.validate(bindingResult);
-        DispatchResponse dispatchResponse = dispatchService.initiateDroneLoading(initiateDroneLoadingRequest);
-        log.info("registerDroneResponse: " + gson.toJson(dispatchResponse));
-//        dispatchService.updateLog(logs, gson.toJson(dispatchResponse));
+        DispatchResponse dispatchResponse = dispatchService.initiateDroneLoading(initiateDroneLoadingRequest, logs);
+        log.info("initiateDroneLoadingResponse: " + gson.toJson(dispatchResponse));
+        dispatchService.updateLog(logs, gson.toJson(dispatchResponse));
+        return new ResponseEntity<>(dispatchResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/v1/completeDroneLoading", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DispatchResponse> CompleteDroneLoading(
+            @Valid @RequestBody CompleteDroneLoadingRequest completeDroneLoadingRequest,
+            BindingResult bindingResult) throws Exception {
+        Log logs = dispatchService.saveLog(completeDroneLoadingRequest.getLoadingReference(),
+                gson.toJson(completeDroneLoadingRequest), "completeDroneLoadingRequest");
+        log.info("completeDroneLoadingRequest: " + gson.toJson(completeDroneLoadingRequest));
+        InputValidator.validate(bindingResult);
+        DispatchResponse dispatchResponse = dispatchService.completeDroneLoading(completeDroneLoadingRequest, logs);
+        log.info("completeDroneLoadingResponse: " + gson.toJson(dispatchResponse));
+        dispatchService.updateLog(logs, gson.toJson(dispatchResponse));
+        return new ResponseEntity<>(dispatchResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/v1/fireDrone", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DispatchResponse> FireDrone(
+            @Valid @RequestBody FireDroneRequest fireDroneRequest,
+            BindingResult bindingResult) throws Exception {
+        Log logs = dispatchService.saveLog(fireDroneRequest.getDroneSerialNumber(), gson.toJson(fireDroneRequest),
+                "fireDroneRequest");
+        log.info("fireDroneRequest: " + gson.toJson(fireDroneRequest));
+        InputValidator.validate(bindingResult);
+        DispatchResponse dispatchResponse = dispatchService.fireDrone(fireDroneRequest, logs);
+        log.info("fireDroneResponse: " + gson.toJson(dispatchResponse));
+        dispatchService.updateLog(logs, gson.toJson(dispatchResponse));
         return new ResponseEntity<>(dispatchResponse, HttpStatus.OK);
     }
 }

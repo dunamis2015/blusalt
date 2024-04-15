@@ -20,6 +20,9 @@ public class InitiateDroneLoadingRequest {
 
     @NotNull
     @NotEmpty
+    private String loadingReference;
+    @NotNull
+    @NotEmpty
     @ValidValue(message = "is invalid! Only letters, numbers, hyphen and underscores are allowed")
     private String medicationName;
     @NotNull
@@ -31,11 +34,7 @@ public class InitiateDroneLoadingRequest {
     @NotNull
     @NotEmpty
     private String medicationImage;
-    /*
-    Each **Medication** has:
-- name (allowed only letters, numbers, '-', '_');
-- weight;
-- code (allowed only upper case letters, underscore and numbers);
-- image (picture of the medication case).
-     */
+    @NotNull
+    @NotEmpty
+    private String droneSerialNumber;
 }

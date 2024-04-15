@@ -19,6 +19,11 @@ public class Drones {
     private Double weight;
     private Double batteryCapacity;
     private String state;
+    private Double journeyBatteryConsumption;
+    private String timeToDestinationInSeconds;
+    private Timestamp returnDateTime;
+    private String startLocation;
+    private String deliveryLocation;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -81,6 +86,56 @@ public class Drones {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    @Basic
+    @Column(name = "journey_battery_consumption", nullable = true)
+    public Double getJourneyBatteryConsumption() {
+        return journeyBatteryConsumption;
+    }
+
+    public void setJourneyBatteryConsumption(Double journeyBatteryConsumption) {
+        this.journeyBatteryConsumption = journeyBatteryConsumption;
+    }
+
+    @Basic
+    @Column(name = "time_to_destination_in_seconds", nullable = true)
+    public String getTimeToDestinationInSeconds() {
+        return timeToDestinationInSeconds;
+    }
+
+    public void setTimeToDestinationInSeconds(String timeToDestinationInSeconds) {
+        this.timeToDestinationInSeconds = timeToDestinationInSeconds;
+    }
+
+    @Basic
+    @Column(name = "return_date_time", nullable = true)
+    public Timestamp getReturnDateTime() {
+        return returnDateTime;
+    }
+
+    public void setReturnDateTime(Timestamp returnDateTime) {
+        this.returnDateTime = returnDateTime;
+    }
+
+    @Basic
+    @Column(name = "start_location", nullable = true)
+    public String getStartLocation() {
+        return startLocation;
+    }
+
+    public void setStartLocation(String startLocation) {
+        this.startLocation = startLocation;
+    }
+
+    @Basic
+    @Column(name = "delivery_location", nullable = true)
+    public String getDeliveryLocation() {
+        return deliveryLocation;
+    }
+
+    public void setDeliveryLocation(String deliveryLocation) {
+        this.deliveryLocation = deliveryLocation;
     }
 
     @Basic
