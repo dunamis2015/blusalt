@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: your_root_password
+      MYSQL_DATABASE: dispatch_api
+      MYSQL_USER: your_username
+      MYSQL_PASSWORD: your_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  java-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dispatch_api
+      SPRING_DATASOURCE_USERNAME: your_username
+      SPRING_DATASOURCE_PASSWORD: your_password
+
+volumes:
+  mysql-data:
