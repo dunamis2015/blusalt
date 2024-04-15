@@ -21,6 +21,7 @@ public class Drones {
     private String state;
     private Double journeyBatteryConsumption;
     private String timeToDestinationInSeconds;
+    private Timestamp dateTimeFired;
     private Timestamp returnDateTime;
     private String startLocation;
     private String deliveryLocation;
@@ -106,6 +107,16 @@ public class Drones {
 
     public void setTimeToDestinationInSeconds(String timeToDestinationInSeconds) {
         this.timeToDestinationInSeconds = timeToDestinationInSeconds;
+    }
+
+    @Basic
+    @Column(name = "date_time_fired", nullable = true)
+    public Timestamp getDateTimeFired() {
+        return dateTimeFired;
+    }
+
+    public void setDateTimeFired(Timestamp dateTimeFired) {
+        this.dateTimeFired = dateTimeFired;
     }
 
     @Basic

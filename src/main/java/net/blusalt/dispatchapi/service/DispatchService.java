@@ -20,12 +20,17 @@ import net.blusalt.dispatchapi.model.response.GetDroneModelsResponse;
 import net.blusalt.dispatchapi.repository.DronesRepository;
 import net.blusalt.dispatchapi.repository.LogRepository;
 import net.blusalt.dispatchapi.repository.MedicationsRepository;
+import net.blusalt.dispatchapi.util.Misc;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
 
+import static net.blusalt.dispatchapi.util.Misc.addSecondsToDate;
 import static net.blusalt.dispatchapi.util.Misc.convertEnumToList;
 
 /**
@@ -111,6 +116,48 @@ public class DispatchService {
         return DispatchResponse.buildResponse();
     }
 
+    @Scheduled(cron = "${monitorDrone.cron}",
+            zone = "${monitorDrone.cronTimezone}")
+    @SchedulerLock(name = "dispatchScheduler")
+    public void monitorDrones() {
+        LockAssert.assertLocked();
+        log.info(">>>>>>>DispatchService- initiated cron job");
+        List<Drones> drones = dronesRepository.findAllByState(String.valueOf(DroneStates.DELIVERING));
+        try {
+            if (drones != null) {
+                for (Drones drone : drones) {
+                    if ((addSecondsToDate(drone.getDateTimeFired(), drone.getTimeToDestinationInSeconds()))
+                            .before(Misc.now())) {
+                        drone.setState(String.valueOf(DroneStates.RETURNING));
+                        dronesRepository.save(drone);
+                    }
+                }
+            }
+        List<Drones> dronez = dronesRepository.findAllByState(String.valueOf(DroneStates.RETURNING));
+        if (dronez != null) {
+            for (Drones drone : dronez) {
+                if (drone.getReturnDateTime().before(Misc.now())) {
+                    drone.setState(String.valueOf(DroneStates.IDLE));
+                    drone.setBatteryCapacity(drone.getBatteryCapacity() - drone.getJourneyBatteryConsumption());
+                    dronesRepository.save(drone);
+                    List<Medications> medications = medicationsRepository
+                            .findAllByMappedAndDroneSerialNumberAndStatus(true, drone.getSerialNumber(),
+                                    String.valueOf(DroneStates.DELIVERING));
+                    if (medications != null) {
+                        for (Medications medication : medications) {
+                            medication.setMapped(false);
+                            medication.setStatus(String.valueOf(DroneStates.DELIVERED));
+                            medicationsRepository.save(medication);
+                        }
+                    }
+                }
+            }
+        }
+        } catch (Exception e) {
+//            throw new RuntimeException(e);
+        }
+    }
+
     private void updateDeliveryInfo(Drones drones, FireDroneRequest fireDroneRequest) {
         drones.setDeliveryLocation(fireDroneRequest.getDeliveryLocation());
         drones.setStartLocation(fireDroneRequest.getStartLocation());
@@ -118,6 +165,7 @@ public class DispatchService {
         drones.setJourneyBatteryConsumption(fireDroneRequest.getJourneyBatteryConsumption());
         drones.setTimeToDestinationInSeconds(fireDroneRequest.getTimeToDestinationInSeconds());
         drones.setState(String.valueOf(DroneStates.DELIVERING));
+        drones.setDateTimeFired(Misc.now());
         dronesRepository.save(drones);
         List<Medications> medications = medicationsRepository.findAllByMappedAndDroneSerialNumberAndStatus(true,
                 fireDroneRequest.getDroneSerialNumber(), String.valueOf(DroneStates.LOADED));

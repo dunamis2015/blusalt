@@ -39,9 +39,6 @@ public class Misc {
     calendar.add(Calendar.SECOND, Integer.valueOf(seconds));
     Date expiryDate = calendar.getTime();
     Timestamp timestamp = new Timestamp(expiryDate.getTime());
-    System.out.println(">>>>>>>CreatedAt: "+date);
-    System.out.println(">>>>>>>ConfiguredExpiryTimeInSeconds: "+seconds);
-    System.out.println(">>>>>>ExpiredAt: "+timestamp);
     return timestamp;
   }
 
@@ -52,14 +49,5 @@ public class Misc {
     }
     return list;
   }
-
-//  public static boolean isValueInEnum(String value, Class<? extends Enum<?>> enumClass) {
-//    try {
-//      Enum.valueOf(enumClass, value);
-//      return true;
-//    } catch (IllegalArgumentException e) {
-//      return false;
-//    }
-//  }
 
 }
